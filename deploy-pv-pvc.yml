@@ -1,0 +1,10 @@
+- name: Deploy NFS PV and PVC to Kubernetes
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Apply NFS PersistentVolume
+      command: kubectl apply -f k3s-storage/nfs-pv.yaml
+
+    - name: Apply NFS PersistentVolumeClaim
+      command: kubectl apply -f k3s-storage/nfs-pvc.yaml
+

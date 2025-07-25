@@ -1,36 +1,42 @@
----
-- name: Setup k3s master node
+- name: K3s Master kurulumu
   hosts: masters
   become: yes
+  become_user: root
+  vars_prompt:
+    - name: ansible_become_pass
+      prompt: "sudo password for user"
+      private: yes
   tasks:
-    - name: Install k3s server
-      shell: curl -sfL https://get.k3s.io | sh -
+    - name: K3s Master kurulumu
+      shell: |
+        curl -sfL https://get.k3s.io | sh -
       args:
         creates: /usr/local/bin/k3s
 
-- name: Get k3s token from master
-  hosts: masters
-  gather_facts: no
-  tasks:
-    - name: Read k3s node token
+    - name: K3s node-token dosyasını oku
       command: cat /var/lib/rancher/k3s/server/node-token
       register: node_token
+      changed_when: false
 
-    - name: Set token fact
+    - name: Node token'ı set et
       set_fact:
         k3s_token: "{{ node_token.stdout }}"
 
-  run_once: true
-
-- name: Setup k3s worker nodes
+- name: K3s Worker kurulumu
   hosts: workers
   become: yes
+  become_user: root
+  vars_prompt:
+    - name: ansible_become_pass
+      prompt: "sudo password for user"
+      private: yes
   vars:
-    master_ip: "{{ hostvars[groups['masters'][0]].ansible_host }}"
-    token: "{{ hostvars[groups['masters'][0]].k3s_token }}"
+    k3s_master_ip: "{{ hostvars[groups['masters'][0]].ansible_host }}"
+    k3s_token: "{{ hostvars[groups['masters'][0]].k3s_token }}"
   tasks:
-    - name: Install k3s agent
-      shell: >
-        curl -sfL https://get.k3s.io | K3S_URL=https://{{ master_ip }}:6443 K3S_TOKEN={{ token }} sh -
+    - name: K3s Worker kurulumu
+      shell: |
+        curl -sfL https://get.k3s.io | K3S_URL=https://{{ k3s_master_ip }}:6443 K3S_TOKEN={{ k3s_token }} sh -
       args:
         creates: /usr/local/bin/k3s
+
