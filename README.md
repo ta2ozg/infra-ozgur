@@ -1,2 +1,2 @@
 # infra-ozgur
-DevOps Infra
+DevOps Case Infra
