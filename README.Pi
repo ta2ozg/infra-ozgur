@@ -1,0 +1,9 @@
+## Raspberry OS uzerinde tuning
+
+Raspberry uzerinde k8s cluster kurabilmek icin asagidaki sekilde cgroup enable edilmeli ve swap kapatilmalidir.
+
+cgroup_memory=1 cgroup_enable=memory
+
+dphys-swapfile swapoff
+dphys-swapfile uninstall
+systemctl disable dphys-swapfile
