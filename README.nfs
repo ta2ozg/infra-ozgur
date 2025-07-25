@@ -1,0 +1,5 @@
+apt update && sudo apt install -y nfs-kernel-server
+mkdir -p /srv/nfs/kubedata
+chown nobody:nogroup /srv/nfs/kubedata
+chmod 777 /srv/nfs/kubedata
+

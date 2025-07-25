@@ -1,0 +1,53 @@
+stages:
+  - build
+  - deploy
+
+variables:
+  IMAGE_NAME: $CI_REGISTRY_IMAGE/demo-app
+  KUBECONFIG_FILE: "$CI_PROJECT_DIR/k3s-kubeconfig.yaml"
+
+before_script:
+  # GitLab Registry login
+  - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" "$CI_REGISTRY" --password-stdin
+
+build:
+  stage: build
+  image: docker:20.10.16
+  services:
+    - docker:20.10.16-dind
+  script:
+    - docker build -t $IMAGE_NAME:$CI_COMMIT_SHORT_SHA .
+    - docker push $IMAGE_NAME:$CI_COMMIT_SHORT_SHA
+    - echo "Image pushed: $IMAGE_NAME:$CI_COMMIT_SHORT_SHA"
+  only:
+    - dev
+    - prod
+
+deploy_dev:
+  stage: deploy
+  image:
+    name: bitnami/kubectl:latest
+    entrypoint: [""]
+  script:
+    # Kubeconfig settings
+    - echo "$KUBECONFIG_CONTENT" | base64 -d > $KUBECONFIG_FILE
+    - export KUBECONFIG=$KUBECONFIG_FILE
+    # Namespace dev'e deploy
+    - sed "s|<IMAGE>|$IMAGE_NAME:$CI_COMMIT_SHORT_SHA|" k8s/deployment.yaml | kubectl apply -n dev -f -
+  only:
+    - dev
+
+deploy_prod:
+  stage: deploy
+  image:
+    name: bitnami/kubectl:latest
+    entrypoint: [""]
+  script:
+    # Kubeconfig ayarı
+    - echo "$KUBECONFIG_CONTENT" | base64 -d > $KUBECONFIG_FILE
+    - export KUBECONFIG=$KUBECONFIG_FILE
+    # Namespace prod'a deploy
+    - sed "s|<IMAGE>|$IMAGE_NAME:$CI_COMMIT_SHORT_SHA|" k8s/deployment.yaml | kubectl apply -n prod -f -
+  only:
+    - prod
+
