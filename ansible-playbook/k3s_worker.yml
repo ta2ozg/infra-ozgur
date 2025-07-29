@@ -1,0 +1,19 @@
+---
+- name: Install K3s Worker Node
+  hosts: k3s_worker
+  become: yes
+  vars:
+    k3s_master_ip: "{{ hostvars[groups['k3s_master'][0]].ansible_default_ipv4.address }}"
+    k3s_token: "{{ lookup('file', './k3s_token') }}"
+  tasks:
+    - name: Install curl if missing
+      apt:
+        name: curl
+        state: present
+        update_cache: yes
+
+    - name: Join worker node to K3s master
+      shell: |
+        curl -sfL https://get.k3s.io | K3S_URL=https://{{ k3s_master_ip }}:6443 K3S_TOKEN={{ k3s_token }} sh -
+      args:
+        creates: /usr/local/bin/k3s
