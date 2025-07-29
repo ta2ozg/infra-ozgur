@@ -1,61 +1,43 @@
-resource "aws_key_pair" "k3s_key" {
-  key_name   = var.key_name
-  public_key = file("~/.ssh/id_rsa.pub")
-}
+resource "aws_instance" "k3s_master" {
+  ami           = "ami-0c94855ba95c71c99"  # Örnek: Amazon Linux 2 (us-east-1)
+  instance_type = "t3.micro"
 
-resource "aws_security_group" "k3s_sg" {
-  name        = "k3s-sg"
-  description = "Allow SSH and Kubernetes API"
-
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    from_port   = 6443
-    to_port     = 6443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-}
-
-resource "aws_instance" "master" {
-  ami             = var.ami
-  instance_type   = var.instance_type
-  key_name        = aws_key_pair.k3s_key.key_name
-  security_groups = [aws_security_group.k3s_sg.name]
+  key_name = "my-ssh-key"  # AWS'de oluşturduğun SSH key pair adı
 
   tags = {
     Name = "k3s-master"
   }
 }
 
-resource "aws_instance" "worker" {
-  ami             = var.ami
-  instance_type   = var.instance_type
-  key_name        = aws_key_pair.k3s_key.key_name
-  security_groups = [aws_security_group.k3s_sg.name]
+resource "aws_instance" "k3s_worker" {
+  ami           = "ami-0c94855ba95c71c99"
+  instance_type = "t3.micro"
+
+  key_name = "my-ssh-key"
 
   tags = {
     Name = "k3s-worker"
   }
 }
 
-output "master_ip" {
-  value = aws_instance.master.public_ip
+resource "aws_instance" "db_server" {
+  ami           = "ami-0c94855ba95c71c99"
+  instance_type = "t3.micro"
+
+  key_name = "my-ssh-key"
+
+  tags = {
+    Name = "db-server"
+  }
 }
 
-output "worker_ip" {
-  value = aws_instance.worker.public_ip
-}
+resource "aws_instance" "backend_server" {
+  ami           = "ami-0c94855ba95c71c99"
+  instance_type = "t3.micro"
 
+  key_name = "my-ssh-key"
+
+  tags = {
+    Name = "backend-server"
+  }
+}
