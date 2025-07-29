@@ -1,0 +1,45 @@
+---
+- name: Install PostgreSQL and Cassandra
+  hosts: db_server
+  become: yes
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install PostgreSQL
+      apt:
+        name: postgresql
+        state: present
+
+    - name: Ensure PostgreSQL service running
+      service:
+        name: postgresql
+        state: started
+        enabled: yes
+
+    - name: Add Cassandra repository key
+      apt_key:
+        url: https://downloads.apache.org/cassandra/KEYS
+        state: present
+
+    - name: Add Cassandra repo to sources.list.d
+      copy:
+        dest: /etc/apt/sources.list.d/cassandra.list
+        content: |
+          deb http://www.apache.org/dist/cassandra/debian 40x main
+
+    - name: Update apt cache after adding Cassandra repo
+      apt:
+        update_cache: yes
+
+    - name: Install Cassandra
+      apt:
+        name: cassandra
+        state: present
+
+    - name: Ensure Cassandra service running
+      service:
+        name: cassandra
+        state: started
+        enabled: yes
