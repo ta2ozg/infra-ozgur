@@ -1,0 +1,35 @@
+---
+- name: Deploy Backend Application
+  hosts: backend_server
+  become: yes
+  vars:
+    backend_image: "ta2ozg/backend:latest"
+    db_host: "{{ hostvars[groups['db_server'][0]].ansible_default_ipv4.address }}"
+  tasks:
+    - name: Install Docker if missing
+      apt:
+        name: docker.io
+        state: present
+        update_cache: yes
+
+    - name: Start Docker service
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Pull backend Docker image
+      docker_image:
+        name: "{{ backend_image }}"
+        source: pull
+
+    - name: Run backend container
+      docker_container:
+        name: backend
+        image: "{{ backend_image }}"
+        state: started
+        restart_policy: always
+        env:
+          DATABASE_URL: "postgresql://user:password@{{ db_host }}/dbname"
+        published_ports:
+          - "8080:8080"
