@@ -1,0 +1,14 @@
+---
+- name: Deploy Frontend Application on K3s
+  hosts: k3s_master
+  become: yes
+  tasks:
+    - name: Copy frontend deployment YAML
+      copy:
+        src: ./frontend-deployment.yml
+        dest: /tmp/frontend-deployment.yml
+
+    - name: Apply frontend deployment
+      shell: kubectl apply -f /tmp/frontend-deployment.yml
+      environment:
+        KUBECONFIG: /etc/rancher/k3s/k3s.yaml
